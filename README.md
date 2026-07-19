@@ -1,73 +1,128 @@
-# NoHand — MacBook Theft Alarm
+# NoHand - MacBook Theft Alarm
 
-NoHand adalah aplikasi menu bar macOS yang mendeteksi percobaan pencurian MacBook di ruang publik (kafe, co-working space). Saat diaktifkan ("Armed"), aplikasi memantau status lid MacBook. Jika lid ditutup tanpa izin, alarm keras berbunyi dan notifikasi dikirim ke HP via [ntfy.sh](https://ntfy.sh).
+NoHand adalah aplikasi menu bar macOS untuk mendeteksi penutupan lid MacBook
+saat laptop ditinggalkan di ruang publik. Ketika Armed, NoHand menjaga Mac
+tetap aktif dengan lid tertutup, mengunci layar, memutar alarm lokal dari
+`audio.mp3`, dan mengirim notifikasi ke Android/iOS melalui
+[ntfy.sh](https://ntfy.sh).
 
-## Cara Setup
+NoHand tidak menggunakan PIN aplikasi. Unlock dan disarm memakai passcode akun
+atau Touch ID melalui lock screen native macOS.
 
-### 1. Buat Project Xcode
+## Fitur
 
-1. Buka Xcode, pilih **File > New > Project**
-2. Pilih **macOS > App**, klik Next
-3. Product Name: `NoHand`
-4. Interface: **XIB** (tidak digunakan karena kita setup UI dari kode)
-5. Language: **Swift**
-6. Simpan project
+- Menu bar app tanpa ikon Dock.
+- Deteksi lid open/closed secara real-time melalui IOKit.
+- Pencegahan clamshell sleep selama Armed menggunakan `pmset disablesleep`.
+- Alarm MP3 looping dengan volume sistem maksimum dan fallback system beep.
+- Audio dipersiapkan saat Arm untuk mengurangi race dengan transisi clamshell.
+- Push notification urgent melalui ntfy.sh.
+- Lock screen otomatis saat Arm.
+- Disarm otomatis setelah unlock dengan passcode atau Touch ID.
+- Pemulihan setting sleep saat unlock, disarm, quit, atau launch setelah crash.
+- Dukungan Apple Silicon dan Intel.
 
-### 2. Tambahkan Source Code
+## Persyaratan
 
-1. Hapus file template bawaan Xcode (`AppDelegate.swift`, `ViewController.swift`, `Main.xib` jika ada)
-2. Copy seluruh file di folder `NoHand/` dari repo ini ke project Xcode:
-   - `AppDelegate.swift`
-   - `LidMonitor.swift`
-   - `AlarmController.swift`
-   - `NtfyNotifier.swift`
-   - `DisarmWindow.swift`
-   - `Info.plist`
-3. Drag semua file `.swift` ke project di Xcode (pastikan "Copy items if needed" dicentang)
-4. Di Xcode, pastikan `Info.plist` yang digunakan adalah yang dari repo (cek Build Settings > Info.plist File)
+- MacBook dengan macOS 15 atau lebih baru.
+- Xcode dengan macOS SDK.
+- Akun atau kredensial administrator.
+- Izin Accessibility untuk NoHand.
+- Aplikasi ntfy pada HP Android/iOS untuk menerima notifikasi.
 
-### 3. Konfigurasi Build
+## Build dan Test
 
-- Target: macOS 12.0+
-- Architectures: Standard (Apple Silicon + Intel)
-
-### 4. Jalankan
-
-- Build & Run (Cmd+R)
-- Ikuti dialog setup: masukkan ntfy topic dan PIN
-
-## Cara Pakai
-
-### Setup Awal
-
-1. **Install ntfy di HP**: Download [ntfy](https://ntfy.sh) dari App Store (iOS) atau Play Store (Android)
-2. **Buat topic**: Subscribe ke topic dengan nama random & unik, misalnya `nohand-abc123xyz`. Jangan gunakan nama yang mudah ditebak karena topic publik bisa di-subscribe siapa saja
-3. **Set topic di NoHand**: Klik ikon menu bar > "Set ntfy Topic..." > masukkan nama topic yang sama
-4. **Set PIN**: Klik "Set PIN..." > masukkan PIN untuk disarm
-5. **Test**: Klik "Send Test Notification" untuk verifikasi
-
-### Mengamankan Laptop
-
-1. Klik ikon menu bar > **Arm** (ikon berubah jadi 🛡️)
-2. Tinggalkan laptop — NoHand sekarang aktif
-3. Jika seseorang menutup lid laptop saat Armed: alarm berbunyi keras + notifikasi dikirim ke HP
-4. Untuk disarm: masukkan PIN di window yang muncul, atau toggle Arm/Disarm manual saat belum trigger
-
-### Kembali Normal
-
-- Masukkan PIN yang benar di window disarm, atau
-- Klik **Disarm** di menu bar (hanya bisa saat state belum triggered)
-
-## ntfy.sh Self-Hosted (Opsional)
-
-Jika ingin privasi lebih baik, self-host ntfy server:
+Project Xcode dan shared scheme sudah tersedia di repository.
 
 ```bash
-docker run -p 80:80 binwiederhier/ntfy
+xcodebuild -project nohand.xcodeproj \
+  -scheme nohand \
+  -destination 'platform=macOS' \
+  build
 ```
 
-Lalu set `NtfyNotifier` base URL ke server sendiri.
+Jalankan unit test:
 
-## Lisensi & Kontribusi
+```bash
+xcodebuild -project nohand.xcodeproj \
+  -scheme nohand \
+  -destination 'platform=macOS' \
+  test
+```
 
-Internal project — hubungi pemilik repo untuk kontribusi.
+Atau buka `nohand.xcodeproj` dan gunakan Cmd+R dari Xcode.
+
+## Setup Awal
+
+### 1. Berikan Izin Accessibility
+
+1. Buka **System Settings > Privacy & Security > Accessibility**.
+2. Tambahkan aplikasi `nohand` jika belum muncul.
+3. Aktifkan toggle untuk `nohand`.
+
+Izin ini diperlukan oleh fallback lock screen yang mensimulasikan shortcut
+Control+Command+Q.
+
+### 2. Konfigurasi ntfy
+
+1. Install aplikasi [ntfy](https://ntfy.sh) di HP.
+2. Subscribe ke topic acak dan sulit ditebak, misalnya
+   `nohand-7f91c2-example`.
+3. Di menu NoHand, pilih **Set ntfy Topic...**.
+4. Masukkan topic yang sama lalu pilih **Save**.
+5. Pilih **Test Notification** dan pastikan notifikasi diterima di HP.
+
+Topic pada server publik ntfy.sh tidak memiliki autentikasi. Siapa pun yang
+mengetahui nama topic dapat melakukan subscribe, jadi jangan memakai nama yang
+mudah ditebak atau mengirim informasi sensitif.
+
+## Cara Menggunakan
+
+### Arm
+
+1. Klik **NoHand > Arm**.
+2. Pada penggunaan pertama, baca dan setujui peringatan panas/baterai.
+3. Masukkan kredensial administrator saat macOS meminta otorisasi.
+4. NoHand menjalankan `pmset -a disablesleep 1`, memasang power assertion,
+   mempersiapkan `assets/audio.mp3`, lalu mengunci layar.
+5. Jika otorisasi dibatalkan atau perubahan setting gagal, Arm dibatalkan dan
+   aplikasi tetap Disarmed.
+
+### Trigger
+
+Saat lid ditutup dalam kondisi Armed:
+
+- Mac tetap aktif meskipun lid tertutup.
+- `audio.mp3` diputar looping dengan volume maksimum.
+- Notifikasi **MacBook Theft Alert** dikirim ke topic ntfy.
+- Jika MP3 gagal diputar, NoHand menggunakan system alert sound berulang.
+
+### Disarm
+
+1. Buka lid MacBook.
+2. Unlock melalui passcode akun atau Touch ID.
+3. NoHand otomatis menghentikan alarm, melepas assertion, mengubah state ke
+   Disarmed, dan menjalankan `pmset -a disablesleep 0`.
+
+Tidak ada PIN atau password yang disimpan dan divalidasi oleh NoHand.
+
+## Peringatan Keselamatan
+
+Mode Armed sengaja membuat Mac tetap aktif ketika lid tertutup. Kondisi ini
+dapat meningkatkan penggunaan baterai dan suhu perangkat.
+
+- Jangan masukkan MacBook ke tas atau sleeve ketika Armed.
+- Selalu unlock/disarm sebelum menyimpan atau membawa MacBook.
+- Jangan abaikan dialog kegagalan pemulihan setting sleep.
+
+Jika aplikasi berhenti tidak normal, NoHand menyimpan recovery flag dan mencoba
+memulihkan setting pada launch berikutnya. Jika pemulihan otomatis gagal,
+jalankan perintah berikut di Terminal:
+
+```bash
+sudo pmset -a disablesleep 0
+```
+
+## Lisensi dan Kontribusi
+
+Internal project - hubungi pemilik repository untuk kontribusi.
