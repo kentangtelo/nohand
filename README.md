@@ -30,28 +30,6 @@ on the native macOS lock screen using the account password or Touch ID.
 - Accessibility permission for NoHand.
 - The ntfy application on an Android or iOS device for receiving alerts.
 
-## Build and Test
-
-The Xcode project and shared scheme are included in the repository.
-
-```bash
-xcodebuild -project nohand.xcodeproj \
-  -scheme nohand \
-  -destination 'platform=macOS' \
-  build
-```
-
-Run the unit tests:
-
-```bash
-xcodebuild -project nohand.xcodeproj \
-  -scheme nohand \
-  -destination 'platform=macOS' \
-  test
-```
-
-Alternatively, open `nohand.xcodeproj` and press Cmd+R in Xcode.
-
 ## Initial Setup
 
 ### 1. Grant Accessibility Permission
