@@ -1,38 +1,38 @@
 # NoHand - MacBook Theft Alarm
 
-NoHand adalah aplikasi menu bar macOS untuk mendeteksi penutupan lid MacBook
-saat laptop ditinggalkan di ruang publik. Ketika Armed, NoHand menjaga Mac
-tetap aktif dengan lid tertutup, mengunci layar, memutar alarm lokal dari
-`audio.mp3`, dan mengirim notifikasi ke Android/iOS melalui
+NoHand is a macOS menu bar application that detects when a MacBook lid is
+closed while the laptop is left unattended in a public place. When Armed,
+NoHand keeps the Mac awake with its lid closed, locks the screen, plays a local
+alarm from `audio.mp3`, and sends a notification to Android or iOS through
 [ntfy.sh](https://ntfy.sh).
 
-NoHand tidak menggunakan PIN aplikasi. Unlock dan disarm memakai passcode akun
-atau Touch ID melalui lock screen native macOS.
+NoHand does not use an application-specific PIN. Unlocking and disarming rely
+on the native macOS lock screen using the account password or Touch ID.
 
-## Fitur
+## Features
 
-- Menu bar app tanpa ikon Dock.
-- Deteksi lid open/closed secara real-time melalui IOKit.
-- Pencegahan clamshell sleep selama Armed menggunakan `pmset disablesleep`.
-- Alarm MP3 looping dengan volume sistem maksimum dan fallback system beep.
-- Audio dipersiapkan saat Arm untuk mengurangi race dengan transisi clamshell.
-- Push notification urgent melalui ntfy.sh.
-- Lock screen otomatis saat Arm.
-- Disarm otomatis setelah unlock dengan passcode atau Touch ID.
-- Pemulihan setting sleep saat unlock, disarm, quit, atau launch setelah crash.
-- Dukungan Apple Silicon dan Intel.
+- Menu bar application with no Dock icon.
+- Real-time lid open/closed detection through IOKit.
+- Clamshell sleep prevention while Armed using `pmset disablesleep`.
+- Looping MP3 alarm at maximum system volume with a system beep fallback.
+- Alarm audio is preloaded during Arm to reduce clamshell transition races.
+- Urgent push notifications through ntfy.sh.
+- Automatic lock screen activation during Arm.
+- Automatic disarm after unlocking with the account password or Touch ID.
+- Sleep setting recovery after unlock, disarm, quit, or a previous crash.
+- Apple Silicon and Intel support.
 
-## Persyaratan
+## Requirements
 
-- MacBook dengan macOS 15 atau lebih baru.
-- Xcode dengan macOS SDK.
-- Akun atau kredensial administrator.
-- Izin Accessibility untuk NoHand.
-- Aplikasi ntfy pada HP Android/iOS untuk menerima notifikasi.
+- A MacBook running macOS 15 or later.
+- Xcode with the macOS SDK.
+- An administrator account or administrator credentials.
+- Accessibility permission for NoHand.
+- The ntfy application on an Android or iOS device for receiving alerts.
 
-## Build dan Test
+## Build and Test
 
-Project Xcode dan shared scheme sudah tersedia di repository.
+The Xcode project and shared scheme are included in the repository.
 
 ```bash
 xcodebuild -project nohand.xcodeproj \
@@ -41,7 +41,7 @@ xcodebuild -project nohand.xcodeproj \
   build
 ```
 
-Jalankan unit test:
+Run the unit tests:
 
 ```bash
 xcodebuild -project nohand.xcodeproj \
@@ -50,79 +50,81 @@ xcodebuild -project nohand.xcodeproj \
   test
 ```
 
-Atau buka `nohand.xcodeproj` dan gunakan Cmd+R dari Xcode.
+Alternatively, open `nohand.xcodeproj` and press Cmd+R in Xcode.
 
-## Setup Awal
+## Initial Setup
 
-### 1. Berikan Izin Accessibility
+### 1. Grant Accessibility Permission
 
-1. Buka **System Settings > Privacy & Security > Accessibility**.
-2. Tambahkan aplikasi `nohand` jika belum muncul.
-3. Aktifkan toggle untuk `nohand`.
+1. Open **System Settings > Privacy & Security > Accessibility**.
+2. Add the `nohand` application if it is not already listed.
+3. Enable the toggle for `nohand`.
 
-Izin ini diperlukan oleh fallback lock screen yang mensimulasikan shortcut
-Control+Command+Q.
+This permission is required by the lock screen fallback that simulates the
+Control+Command+Q shortcut.
 
-### 2. Konfigurasi ntfy
+### 2. Configure ntfy
 
-1. Install aplikasi [ntfy](https://ntfy.sh) di HP.
-2. Subscribe ke topic acak dan sulit ditebak, misalnya
+1. Install [ntfy](https://ntfy.sh) on your phone.
+2. Subscribe to a random, hard-to-guess topic such as
    `nohand-7f91c2-example`.
-3. Di menu NoHand, pilih **Set ntfy Topic...**.
-4. Masukkan topic yang sama lalu pilih **Save**.
-5. Pilih **Test Notification** dan pastikan notifikasi diterima di HP.
+3. Select **Set ntfy Topic...** from the NoHand menu.
+4. Enter the same topic and select **Save**.
+5. Select **Test Notification** and confirm that the notification arrives on
+   your phone.
 
-Topic pada server publik ntfy.sh tidak memiliki autentikasi. Siapa pun yang
-mengetahui nama topic dapat melakukan subscribe, jadi jangan memakai nama yang
-mudah ditebak atau mengirim informasi sensitif.
+Topics on the public ntfy.sh server are not authenticated. Anyone who knows a
+topic name can subscribe to it, so do not use an easily guessed name or send
+sensitive information.
 
-## Cara Menggunakan
+## Usage
 
 ### Arm
 
-1. Klik **NoHand > Arm**.
-2. Pada penggunaan pertama, baca dan setujui peringatan panas/baterai.
-3. Masukkan kredensial administrator saat macOS meminta otorisasi.
-4. NoHand menjalankan `pmset -a disablesleep 1`, memasang power assertion,
-   mempersiapkan `assets/audio.mp3`, lalu mengunci layar.
-5. Jika otorisasi dibatalkan atau perubahan setting gagal, Arm dibatalkan dan
-   aplikasi tetap Disarmed.
+1. Select **NoHand > Arm**.
+2. On first use, read and accept the battery and heat warning.
+3. Enter administrator credentials when macOS requests authorization.
+4. NoHand runs `pmset -a disablesleep 1`, acquires a power assertion, prepares
+   `assets/audio.mp3`, and locks the screen.
+5. If authorization is cancelled or the sleep setting cannot be changed,
+   arming is cancelled and the application remains Disarmed.
 
 ### Trigger
 
-Saat lid ditutup dalam kondisi Armed:
+When the lid is closed while NoHand is Armed:
 
-- Mac tetap aktif meskipun lid tertutup.
-- `audio.mp3` diputar looping dengan volume maksimum.
-- Notifikasi **MacBook Theft Alert** dikirim ke topic ntfy.
-- Jika MP3 gagal diputar, NoHand menggunakan system alert sound berulang.
+- The Mac remains awake with its lid closed.
+- `audio.mp3` plays continuously at maximum volume.
+- A **MacBook Theft Alert** notification is sent to the configured ntfy topic.
+- If the MP3 cannot be played, NoHand repeatedly plays the system alert sound.
 
 ### Disarm
 
-1. Buka lid MacBook.
-2. Unlock melalui passcode akun atau Touch ID.
-3. NoHand otomatis menghentikan alarm, melepas assertion, mengubah state ke
-   Disarmed, dan menjalankan `pmset -a disablesleep 0`.
+1. Open the MacBook lid.
+2. Unlock the Mac using the account password or Touch ID.
+3. NoHand automatically stops the alarm, releases the power assertion, changes
+   its state to Disarmed, and runs `pmset -a disablesleep 0`.
 
-Tidak ada PIN atau password yang disimpan dan divalidasi oleh NoHand.
+NoHand stores or validates no PIN or account password.
 
-## Peringatan Keselamatan
+## Safety Warning
 
-Mode Armed sengaja membuat Mac tetap aktif ketika lid tertutup. Kondisi ini
-dapat meningkatkan penggunaan baterai dan suhu perangkat.
+Armed mode intentionally keeps the Mac running while its lid is closed. This
+can increase battery usage and device temperature.
 
-- Jangan masukkan MacBook ke tas atau sleeve ketika Armed.
-- Selalu unlock/disarm sebelum menyimpan atau membawa MacBook.
-- Jangan abaikan dialog kegagalan pemulihan setting sleep.
+- Never place the MacBook in a bag or sleeve while it is Armed.
+- Always unlock and disarm NoHand before storing or transporting the MacBook.
+- Do not ignore an error indicating that the sleep setting could not be
+  restored.
 
-Jika aplikasi berhenti tidak normal, NoHand menyimpan recovery flag dan mencoba
-memulihkan setting pada launch berikutnya. Jika pemulihan otomatis gagal,
-jalankan perintah berikut di Terminal:
+If the application terminates unexpectedly, NoHand stores a recovery flag and
+attempts to restore the sleep setting on its next launch. If automatic recovery
+fails, run the following command in Terminal:
 
 ```bash
 sudo pmset -a disablesleep 0
 ```
 
-## Lisensi dan Kontribusi
+## License and Contributing
 
-Internal project - hubungi pemilik repository untuk kontribusi.
+Internal project. Contact the repository owner to contribute.
