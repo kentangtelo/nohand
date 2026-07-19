@@ -38,7 +38,6 @@ VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_
 DMG_PATH="$BUILD_DIR/NoHand-$VERSION.dmg"
 
 ditto "$APP_PATH" "$STAGING_DIR/NoHand.app"
-ln -s /Applications "$STAGING_DIR/Applications"
 rm -f "$DMG_PATH"
 
 echo "Creating $DMG_PATH..."
